@@ -11,149 +11,185 @@ int Maior_Probabilidade(std::vector<int> array){
 	for(int i=0; i<array.size(); i++){
 		//std::cout<< array.at(i);
 		if(array.at(i) > max){
-        	max= array.at(i);
-      		posicao= i; 
-      	}
-	}
-	return posicao;
+           max= array.at(i);
+           posicao= i; 
+       }
+   }
+   return posicao;
+}
+
+bool wayToSort(int i, int j) { 
+
+    return i > j; 
 }
 
 int ACO::Run(int num_interation, Graph *graph){
 	std::vector<Bin> bin;
-	Bin *next, *posicaoLista;
-	std::vector<int> quantidade_bin, vertice_probab;
-	double pheromone=0;
-	int weight_item=0;
-	int cima=0, baixo=0;
-	int vertice;
-	double add_pheromone=0;
+	Bin *next, *posicaoLista, *inicio, *solucaoBin;
+	std::vector<int> quantidade_bin, quantidade_binInt, vertice_probab, trajeto;
+    std::vector<double> cima;
+    double feromonioBaixo=0;
+    double weight_item=0;
+    double  baixo=0;
+    int vertice, first=0;
+    int solucaoInt=0;
+    int trajetoCont=0;
+    double add_cima=0;
+    int BESTSIZE = 9999;
+    double VARIACAO_FEROMONIO = 0;
 
 
-	bin.push_back({});
-	next = new Bin({2,3});
-    bin.at(0).setNext(next);
-    std::cout<<  bin.at(0).getNext()->getItenNum(0);
+    for (int i = 0; i < num_interation; i++) {
+        std::cout<<"ITERACAO "<< i<<"\n";
+        quantidade_bin.clear();        
+        VARIACAO_FEROMONIO= 0;
+        BESTSIZE = 9999; 
+        for(int NUMBER_ANTS=0; NUMBER_ANTS < 5; NUMBER_ANTS++){
+            vertice = rand() % graph -> getSize();
+            first= vertice;
+            std::cout << "NUMBER_ANT BEGIN: " << (NUMBER_ANTS) 
+            << " " << "\nVertice: " << vertice << " P: " << graph -> getWeights(vertice);
 
-    posicaoLista = bin.at(0).getNext();
-    next = new Bin({1,4});
-    posicaoLista->setNext(next);
+            if (graph -> getWeights(vertice) <= graph -> getBin()) {
+                bin.push_back({});
+
+                next = new Bin({vertice, graph -> getWeights(vertice)});
+                bin.at(NUMBER_ANTS).setNext(next);
+                posicaoLista = bin.at(NUMBER_ANTS).getNext();
+                inicio = bin.at(NUMBER_ANTS).getNext();
+
+                quantidade_bin.push_back(1);
+                graph -> setForFalseUsed();
+                graph -> setUsed(vertice, true);
+
+                cima.clear();
+                vertice_probab.clear();
+                baixo= 0;                 
+                for (int b = 0; b < graph -> getSize(); b++) {
+                    if (!graph -> getUsed(b)) { 
+                        cima.push_back(graph->getEdge(b, graph->getWeights(next->getItenNum(0))));
+                        for(int k=1; k< next->getSize(); k++){
+                            cima.at(b)+= (graph->getEdge(b, graph->getWeights(next->getItenNum(k))));
+                        }
+                        cima.at(b)*= pow(graph->getWeights(b),2);
 
 
-    while(posicaoLista->getNext() != NULL){
-    	std::cout<< "A";
-    	posicaoLista= posicaoLista->getNext();
+                        if(graph->getWeights(b)+ next->getWeights() <= graph->getBin()){                                
+                            for(int c=0; c< next->getSize(); c++){
+                                feromonioBaixo= graph->getEdge(b, graph->getWeights(next->getItenNum(c)));
+                                weight_item= (pow(graph->getWeights(next->getItenNum(c)),2));
+                                feromonioBaixo=  (feromonioBaixo/next->getSize());
 
+                                baixo+= pow(feromonioBaixo,2) * weight_item;
+                            }
+                        }
+                    }  
+                    else{
+                        cima.push_back(9999);
+                    }              
+                } 
+               
+                for(int b=0; b< cima.size(); b++){
+                    cima.at(b)= cima.at(b)/baixo;
+                }
+
+                vertice_probab.resize(cima.size());
+                std::size_t n(0);
+
+                std::generate(std::begin(vertice_probab), std::end(vertice_probab), 
+                    [&]{ return n++; });
+
+                std::sort(std::begin(vertice_probab), std::end(vertice_probab), 
+                    [&](int i1, int i2) { return cima[i1] > cima[i2]; } );
+
+
+                for(int rotaK=1; rotaK< vertice_probab.size(); rotaK++){
+                    vertice = vertice_probab.at(rotaK);
+                    std::cout<< "\nVertice: " << vertice << " P: " << graph -> getWeights(vertice);
+
+                    if (next -> getWeights() + graph -> getWeights(vertice) <= graph -> getBin()) {
+                        next -> addItem(vertice, graph -> getWeights(vertice));
+                    } 
+                    else {
+                        next = new Bin({vertice, graph -> getWeights(vertice)});
+                        posicaoLista -> setNext(next);
+                        posicaoLista = posicaoLista -> getNext();
+                        quantidade_bin.at(NUMBER_ANTS)++;
+                    }
+                }
+            }
+
+            if(BESTSIZE > quantidade_bin.at(NUMBER_ANTS)){
+                BESTSIZE= quantidade_bin.at(NUMBER_ANTS);                
+                solucaoBin = inicio;
+                solucaoInt= BESTSIZE;
+                trajeto.clear();
+
+                VARIACAO_FEROMONIO+= pow(inicio->getWeights()/graph->getBin(),2);
+                while(inicio->getNext() != NULL){
+                    inicio= inicio->getNext();
+                    VARIACAO_FEROMONIO+= pow(inicio->getWeights()/graph->getBin(),2);                    
+                }
+                VARIACAO_FEROMONIO/= solucaoInt;
+
+                for(int k=0; k< vertice_probab.size(); k++){
+                    if(k==0)
+                        trajeto.push_back(first);
+                    else
+                        trajeto.push_back(vertice_probab.at(k));
+                }
+
+                if(NUMBER_ANTS>0){
+                    quantidade_binInt.push_back(BESTSIZE);
+                }
+            }
+
+            std::cout << "\nNUMBER_ANTS END: "<< NUMBER_ANTS<<"\n";            
+        }
+        
+        for(int k=0; k< trajeto.size(); k++){
+            std::cout<< " "<< trajeto.at(k);
+        }
+        std::cout<<"\nVARIACAO " <<VARIACAO_FEROMONIO<<"\n";
+
+        std::cout<< "UPDATE FEROMONIOS";
+
+        for(int i=0 ; i < trajeto.size()-1; i++){
+            graph->setEdge(trajeto.at(i),trajeto.at(i+1), VARIACAO_FEROMONIO); 
+        }
+
+
+        for (int j = 0; j < graph -> getSize(); j++) {
+            for (int k = 0; k < graph -> getSize(); k++) {
+                if(j==k)
+                    continue;
+                else
+                    graph->setEdge(j,k, graph->getEdge(j,k)*(-0.2));
+            }
+        }
+        graph -> Print();
+        std::cout << "\n";
     }
 
-    next = new Bin({3,4});
-    bin.at(0).setNext(next);
-    //std::cout<<  bin.at(0).getNext()->getItenNum(0);
-    std::cout<< posicaoLista->getItenNum(0)<<"\n";
-
-
-/*
-
-
-    for(int i=0; i < num_interation; i++){
-    	vertice= rand() % graph->getSize();
-	   	std::cout<< "i: "<< (i)<< " "<< "vertice: "<< vertice << " P: "<< graph->getWeights(vertice);
-	    
-    	if(graph->getWeights(vertice) <= graph->getBin()){
-    		bin.push_back({});
-    		quantidade_bin.push_back(1);
-    		graph->setForFalseUsed();
-    		graph->setUsed(vertice, true);
-    		
-    		next = new Bin({vertice,graph->getWeights(vertice)});
-    		bin.at(i).setNext(next);
-    		posicaoLista = bin.at(i).getNext();
-
-    		//std::cout<< "\nVertice-> ";
-    		//while(!graph->trueUsed()){
-    			vertice_probab.clear();
-    			for(int m=0; m< graph->getSize(); m++){
-    				if(!graph->getUsed(m)){
-
-    					pheromone=0;
-    					for(int b=0; b< bin.at(i).getNext()->getSize(); b++){
-    						//std::cout<< "vertice: "<< bin.at(i).getNext()->getItenNum(b)<< " P: "
-    						//		<< graph->getWeights(bin.at(i).getNext()->getItenNum(b))
-    						//		<< " E: "<< graph->getEdge(vertice, bin.at(i).getNext()->getItenNum(b));
-    						pheromone+= graph->getEdge(b, bin.at(i).getNext()->getItenPeso(b));
-    					}
-    					//std::cout<<"\n";
-    					pheromone=  (pheromone / bin.at(i).getNext()->getSize()); 
-    					cima= pow(pheromone,2) * pow(graph->getWeights(vertice),1);
-
-    					pheromone=0;
-    					baixo= 0;
-    					for(int j=0; j< graph->getSize(); j++){
-    						if(graph->getWeights(j)+ bin.at(i).getNext()->getWeights() <= graph->getBin()){
-    							//std::cout<< "POSICAO: "<< graph->getWeights(j)<< " ";
-    							for(int b=0; b< bin.at(i).getNext()->getSize(); b++){
-    								//std::cout<< "vertice: "<< bin.at(i).getNext()->getItenNum(b)<< " P: "
-    								//		<< graph->getWeights(bin.at(i).getNext()->getItenNum(b)) 
-    								//		<< " E: "<< graph->getEdge(vertice, bin.at(i).getNext()->getItenNum(b));
-    								pheromone+= graph->getEdge(b, bin.at(i).getNext()->getItenNum(b));
-    								weight_item+= (pow(graph->getWeights(bin.at(i).getNext()->getItenNum(b)),1));
-    								pheromone=  (pheromone/bin.at(i).getNext()->getSize());
-    								baixo+= pow(pheromone,2) * weight_item;
-    							}
-    						}
-    					}
-
-    					//std::cout<< "\n";
-    					if(baixo!=0)
-    						vertice_probab.push_back(cima/baixo);
-    					else
-    						vertice_probab.push_back(cima/1);
-
-    					vertice= Maior_Probabilidade(vertice_probab);
-    					std::cout<< " ---> "<< vertice<< "\n";
-    					
-    				}
-    			}
-
-    			if(bin.at(i).getNext()->getWeights() + graph->getWeights(vertice) <= graph->getBin()){
-    				bin.at(i).getNext()->addItem(vertice,graph->getWeights(vertice));
-    			}
-    			else{
-    				next = new Bin({vertice,graph->getWeights(vertice)});
-    				bin.at(i).setNext(next);
-    				quantidade_bin.at(i)++;
-    			}
-    			graph->setUsed(vertice, true);
-    		//}	
-    	}
-
-    	
-    	std::cout<<"FIM CICLO   \n";
-    	std::cout<< posicaoLista->getNext();
-
-    	add_pheromone=0;
-    	for(int j=0; j< graph->getSize(); j++){
-    		for(int k=0; k< graph->getSize(); k++){
-
-    			while(posicaoLista->getNext() != NULL){
-
-    				add_pheromone+= pow(posicaoLista->getWeights() / graph->getBin(), 2);
-    				graph->setEdge(j,k,(add_pheromone/quantidade_bin.at(i)));
-    				posicaoLista = posicaoLista->getNext();
-    			}             
-    		}
-    	}
-    	graph->Print();
-    	std::cout<<"\n";
+    std::cout<< "\n\nRESPOSTA\nNUMBER_BIN: "<< solucaoInt<<"\n";
+    for(int sol=0; sol < solucaoBin->getSize(); sol++){   
+        std::cout<< solucaoBin->getItenNum(sol)<< "\t"<< solucaoBin->getItenPeso(sol)<<"\n";
     }
-
-
-    std::cout<< "RESPOSTA\n";
-    // Imprime as respostas parciais
-    for(int i=0; i<quantidade_bin.size(); i++){
-    	std::cout<< quantidade_bin.at(i)<< "\t";
+    while (solucaoBin -> getNext() != NULL) { 
+        solucaoBin = solucaoBin->getNext();  
+        for(int sol=0; sol < solucaoBin->getSize(); sol++){   
+            std::cout<< solucaoBin->getItenNum(sol)<< "\t"<< solucaoBin->getItenPeso(sol)<<"\n";
+        }
+        
     }
 
     std::cout<<"\n";
-	*/
+    for(int i=0; i< quantidade_binInt.size(); i++){
+        std::cout<< quantidade_binInt.at(i)<<" ";
+    }
+    
+
+    std::cout<<"\n";
+
     return -1;
 }

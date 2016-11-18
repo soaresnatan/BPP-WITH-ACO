@@ -5,6 +5,7 @@
 #include <fstream>
 #include <string>
 #include <algorithm>
+#include <stdlib.h>
 
 class Graph{
 private:
@@ -18,7 +19,7 @@ public:
     Graph();
     ~Graph();
     void Print();
-    void setEdge(int i, int j, int value);
+    void setEdge(int i, int j, double value);
     void setUsed(int position,bool new_value);
     void setForFalseUsed();
     void Clear();       

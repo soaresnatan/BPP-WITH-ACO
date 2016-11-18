@@ -8,6 +8,6 @@
 int main(int argc, char *argv[]){
     Graph *graph= new Graph();
 
-    ACO::Run(3, graph);
+    ACO::Run(2, graph);
     return 0;
 }

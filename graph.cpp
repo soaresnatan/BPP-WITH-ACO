@@ -62,7 +62,10 @@ void Graph::setForFalseUsed(){
 void Graph::Att(){
     for(int i=0; i< size; i++){
         for(int k=0; k< size; k++){
-            no[i][k]= 0.1;
+            if(i==k)
+                no[i][k]= 0;
+            else
+                no[i][k]= 0.1;//(rand() % 100)/(double)100;
         }
     }
     //std::sort(weights, weights + size, std::greater<int>() );
@@ -77,17 +80,17 @@ int Graph::getBin(){
 }
 
 void Graph::Print(){
-    std::cout<< "VERTICES\n";
+    /*std::cout<< "VERTICES\n";
     for(int w=0; w< size; w++){
         std::cout<< weights[w] <<"\t";
-    }
+    }*/
 
-    std::cout<< "\n\nEDGES\n";
+    std::cout<< "\nGRAPH\n";
     for(int i=0; i< size; i++){
         for(int k=0; k< size; k++){
             std::cout<< no[i][k]<< "\t";
         }
-        std::cout<<"\n";
+        std::cout<<"\t\n";
     }
     std::cout<<"\n";
 }
@@ -95,7 +98,7 @@ void Graph::Print(){
 void Graph::Clear(){
     for(int i=0; i< size; i++){
         for(int k=0; k< size; k++){
-            no[i][k]= 0;
+            no[i][k]= 0.1;
         }
     }
 }
@@ -104,7 +107,7 @@ int Graph::getSize(){
     return size;
 }
 
-void Graph::setEdge(int i, int j, int value){
+void Graph::setEdge(int i, int j, double value){
     no[i][j]+= value;
 }
 
