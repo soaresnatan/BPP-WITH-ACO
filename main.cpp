@@ -15,7 +15,7 @@ int main(int argc, char *argv[]){
 
     ACO a;
 
-    a.Run(100);
+    a.Run(300);
     
     return 0;
 }
