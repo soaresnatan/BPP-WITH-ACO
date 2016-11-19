@@ -1,13 +1,21 @@
 #include <iostream>
 #include <vector>
 #include <math.h>
+#include <algorithm>
 #include <stdlib.h>
 #include "graph.h"
+#include "bin.h"
+
+#include <fstream>
+#include <string>
+
 #include "aco.h"
 
 int main(int argc, char *argv[]){
-    Graph *graph= new Graph();
 
-    ACO::Run(2, graph);
+    ACO a;
+
+    a.Run(100);
+    
     return 0;
 }

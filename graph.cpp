@@ -2,21 +2,36 @@
 
 
 Graph::Graph(){
+
+}
+
+void Graph::Init(){
     std::string request;
     std::ifstream file;
     file.open("./Input.in");
 
     int i=0, k=0;
+    size=0;
     if(file.is_open()){
         while(getline(file, request)){
             if(i==0){
-                size= std::stoi(request);
+                size= std::stoi(request);            
+
                 used= new bool(size);
-                weights= new int(size);
+                weights= new int(size);   
+
+                /*no.resize(size);
+                for (int k = 0; k < size; k++)
+                    no[k].resize(size); */          
+
                 no = new double*[size];
-                for(int i = 0; i < size; i++)
-                    no[i] = new double[size];
+                for (int b = 0 ; b < size ; b++)
+                    no[b] = new double[size];
+
+                Att();
+
                 i++;
+                
             }
 
             else if(i==1){
@@ -25,16 +40,28 @@ Graph::Graph(){
             }
 
             else{
-                weights[k]= std::stoi(request);
+                weights[k]= std::stoi(request);                
                 used[k]= false; 
                 k++;
-            }
+            }        
         }
-        Att();
-    }
+        
+    }        
     else{
         std::cout<< "Error\n";
-    }
+    }        
+}
+
+void Graph::Att(){
+    std::cout<<size<<"\n";
+    for(int i=0; i< size; i++){
+        for(int k=0; k< size; k++){
+            if(i==k)
+                no[i][k]=0;
+            else
+             no[i][k]= 0.1;
+     }
+ }
 }
 
 bool Graph::trueUsed(){
@@ -59,18 +86,6 @@ void Graph::setForFalseUsed(){
     }
 }
 
-void Graph::Att(){
-    for(int i=0; i< size; i++){
-        for(int k=0; k< size; k++){
-            if(i==k)
-                no[i][k]= 0;
-            else
-                no[i][k]= 0.1;//(rand() % 100)/(double)100;
-        }
-    }
-    //std::sort(weights, weights + size, std::greater<int>() );
-}
-
 int Graph::getWeights(int i){
     return weights[i];
 }
@@ -80,17 +95,17 @@ int Graph::getBin(){
 }
 
 void Graph::Print(){
-    /*std::cout<< "VERTICES\n";
+    std::cout<< "VERTICES\n";
     for(int w=0; w< size; w++){
         std::cout<< weights[w] <<"\t";
-    }*/
+    }
 
     std::cout<< "\nGRAPH\n";
-    for(int i=0; i< size; i++){
-        for(int k=0; k< size; k++){
+    for(int i=2; i< size; i++){
+        for(int k=2; k< size; k++){            
             std::cout<< no[i][k]<< "\t";
         }
-        std::cout<<"\t\n";
+        std::cout<<"\n";
     }
     std::cout<<"\n";
 }
@@ -116,8 +131,9 @@ double Graph::getEdge(int i, int j){
 }
 
 Graph::~Graph(){
-    for(int i = 0; i < size; ++i) {
+    for (int i = 0; i < size; ++i)
         delete [] no[i];
-    }
     delete [] no;
+    delete [] weights;
+    delete [] used;
 }

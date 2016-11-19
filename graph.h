@@ -9,6 +9,7 @@
 
 class Graph{
 private:
+    //std::vector<std::vector<double>> no;
     double **no;
     int *weights;
     bool *used;
@@ -22,6 +23,7 @@ public:
     void setEdge(int i, int j, double value);
     void setUsed(int position,bool new_value);
     void setForFalseUsed();
+    void Init();
     void Clear();       
     double getEdge(int i, int j);
     int getWeights(int i);

@@ -57,4 +57,26 @@
                         cima.push_back(9999);
                     }              
                 }      
-                */
+                
+
+                    double **array;
+    int size=10;
+
+    array= new double*[size];
+    for(int i=0; i< size; i++){
+        array[i]= new double[size];
+    }
+
+    for(int i=0; i<size ;i++){
+        for(int k=0; k<size; k++){
+            array[i][k]= 1;
+        }
+    }
+
+    for(int i=0; i<size ;i++){
+        for(int k=0; k<size; k++){
+            std::cout<<array[i][k]<<"\t";
+        }
+        std::cout<<"\n";
+    }
+    */
