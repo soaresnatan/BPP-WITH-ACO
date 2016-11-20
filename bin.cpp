@@ -10,10 +10,6 @@ Bin::Bin(int num, int peso){
 Bin::Bin(){
 }
 
-Bin::~Bin(){
-
-}
-
 void Bin::addItem(int num, int peso){
 	iten_numero.push_back(num);
 	iten_peso.push_back(peso);
@@ -41,4 +37,8 @@ Bin* Bin::getNext(){
 }
 void Bin::setNext(Bin *next){
 	this->next= next;
+}
+
+Bin::~Bin(){
+
 }

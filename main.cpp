@@ -12,10 +12,8 @@
 #include "aco.h"
 
 int main(int argc, char *argv[]){
-
-    ACO a;
-
-    a.Run(1);
+    ACO a(3);
+    a.Run(10);
     
     return 0;
 }

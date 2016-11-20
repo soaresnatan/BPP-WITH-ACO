@@ -1,13 +1,14 @@
 #include "aco.h"
 
-ACO::ACO()
-{
+ACO::ACO(int MaxAnts){   
+    this->MaxAnts= MaxAnts;
+    bin= new Bin[MaxAnts];
+
     std::string request;
     std::ifstream file;
     file.open("./Entradas/Input.in");
 
-    int i=0, k=0;
-    size=0;
+
     if(file.is_open()){
         while(getline(file, request)){
             requisicoes.push_back(request);           
@@ -26,22 +27,22 @@ void ACO::getRequisicao(std::string reqNome){
     file.open("./Entradas/"+reqNome);
 
     int i=0, k=0;
-    size=0;
+    NumElementos=0;
     weights.clear();
     used.clear();
 
     if(file.is_open()){
         while(getline(file, request)){
             if(i==0){
-                size= std::stoi(request);
+                NumElementos= std::stoi(request);
 
-                no.resize(size);
-                for (int k = 0; k < size; k++)
-                    no[k].resize(size);           
+                TabelaTrilhas.resize(NumElementos);
+                for (int k = 0; k < NumElementos; k++)
+                    TabelaTrilhas[k].resize(NumElementos);           
                 i++;
             }
             else if(i==1){
-                bin= std::stoi(request);
+                MaxInBin= std::stoi(request);
                 i++;
             }
             else{
@@ -55,12 +56,12 @@ void ACO::getRequisicao(std::string reqNome){
         std::cout<< "Error\n";
     }
 
-    for(int i=0; i<size; i++){
-        for(int j=0; j<size; j++){
+    for(int i=0; i<NumElementos; i++){
+        for(int j=0; j<NumElementos; j++){
             if(i==j)
-                no[i][j]= 0;
+                TabelaTrilhas[i][j]= 0;
             else
-                no[i][j]= 0.1;
+                TabelaTrilhas[i][j]= 0.1;
         }
     } 
 
@@ -75,7 +76,7 @@ bool ACO::getUsed(int position){
 }
 
 bool ACO::trueUsed(){
-    for(int i=0; i< size; i++){
+    for(int i=0; i< NumElementos; i++){
         if(!used.at(i))
             return false;
     }
@@ -83,7 +84,7 @@ bool ACO::trueUsed(){
 }
 
 void ACO::setForFalseUsed(){
-    for(int i=0; i< size; i++){
+    for(int i=0; i< NumElementos; i++){
         used[i]= false;
     }
 }
@@ -92,263 +93,235 @@ int ACO::getWeights(int i){
     return weights.at(i);
 }
 
-int ACO::getBin(){
-    return bin;
+int ACO::getMaxBin(){
+    return MaxInBin;
 }
 
 void ACO::Print(){
     std::cout<< "VERTICES\n";
-    for(int w=0; w< size; w++){
+    for(int w=0; w< NumElementos; w++){
         std::cout<< weights[w] <<"\t";
     }
 
     std::cout<< "\nGRAPH\n";
-    for(int i=2; i< size; i++){
-        for(int k=2; k< size; k++){            
-            std::cout<< no[i][k]<< "\t";
+    for(int i=2; i< NumElementos; i++){
+        for(int k=2; k< NumElementos; k++){            
+            std::cout<< TabelaTrilhas[i][k]<< "\t";
         }
         std::cout<<"\n";
     }
     std::cout<<"\n";
 }
 
-void ACO::Clear(){
-    for(int i=0; i< size; i++){
-        for(int k=0; k< size; k++){
+void ACO::ClearMatriz(){
+    for(int i=0; i< NumElementos; i++){
+        for(int k=0; k< NumElementos; k++){
             if(i==k)
-                no[i][k]= 0;
+                TabelaTrilhas[i][k]= 0;
             else
-                no[i][k]= 0.1;
+                TabelaTrilhas[i][k]= 0.1;
         }
     }
 }
 
-int ACO::getSize(){
-    return size;
+int ACO::getNumElementos(){
+    return NumElementos;
 }
 
 void ACO::setEdge(int i, int j, double value){
-    no[i][j]+= value;
+    TabelaTrilhas[i][j]+= value;
 }
 
 double ACO::getEdge(int i, int j){
-    return no[i][j];
+    return TabelaTrilhas[i][j];
+}
+
+void ACO::makeSaida(std::string name, int execucao, int iteracoes, int solucao){
+    std::ofstream output("./Saidas/"+name, std::ofstream::out | std::ofstream::app);
+    output<< "------> EXECUCAO "<< execucao+1<< "\n"
+    <<"Time: "<< tDecorrido<< "\n"
+    <<"QANT ITERACOES: "<< iteracoes<< "\nNUMBER_BIN: "<< solucao<< "\n\n";
+    
+    output.close();    
+}
+
+void ACO::ClearBin(){
+    Bin *inicio, *aux;
+    for(int i=0; i< MaxAnts; i++){
+        inicio = bin[i].getNext();
+        aux = bin[i].getNext();
+        while (inicio != NULL) {
+            aux = aux->getNext();
+            delete inicio;
+            inicio  = aux;
+        }
+        bin[i].setNext(NULL);
+    }
 }
 
 bool ACO::Time(clock_t inicio){
     tFim = clock();
     tDecorrido = ((tFim - tInicio) / (CLOCKS_PER_SEC / 1000));
-
-    std::cout<< tDecorrido<<"\n";
+    
     if(tDecorrido > 60000)
         return true;
     else
         return false;
 }
 
-void ACO::makeSaida(std::string name, int execucao, int iteracoes, int solucao){
-    std::ofstream output("./Saidas/"+name, std::ofstream::out | std::ofstream::app);
-    //std::cout<< "./Saidas/"+name;
-    output<< "------> EXECUCAO "<< execucao+1<< "\n"
-    <<"QANT ITERACOES: "<< iteracoes<< "\nNUMBER_BIN: "<< solucao<< "\n";
-    
-    output.close();    
-}
+int ACO::Run(int quantidade_execucoes){   
+   Bin *next, *posicaoLista, *inicio;
+   std::vector<int> quantidade_bin, trajetoFinal, trajetoParcial;
+   std::vector<double> cima, vertice_probab;
+   int vertice;
+   int iteracoes=0;
+   int BESTSIZEPARCIAL = 9999;
+   int BESTSIZEFINAL = 9999;
+   double VARIACAO_FEROMONIO = 0;
+   double max=0;
+   double feromonioBaixo=0;
+   double weight_item=0;
+   double  baixo=0;
 
 
-
-int ACO::Run(int num_interation){
- std::vector<Bin> bin;
- Bin *next, *posicaoLista, *inicio, *solucaoBinParcial, *solucaoBinFinal;
- std::vector<int> quantidade_bin, quantidade_binInt, trajetoFinal, trajetoParcial;
- std::vector<double> cima, vertice_probab;
- double feromonioBaixo=0;
- double weight_item=0;
- double  baixo=0;
- int vertice, first=0;
- int solucaoInt=0;
- int trajetoFinalCont=0;
- int iteracoes=0;
- double max=0;
- int BESTSIZEPARCIAL = 9999;
- int BESTSIZEFINAL = 9999;
- double VARIACAO_FEROMONIO = 0;
-
-
- for(int a=0; a< requisicoes.size(); a++){
-    //std::cout<<"---------> "<<requisicoes.at(a)<< "\n";
+   for(int a=0; a< requisicoes.size(); a++){
     getRequisicao(requisicoes.at(a));
-    BESTSIZEFINAL = 9999;
-    tInicio = clock();
-    tDecorrido= 0;
-    iteracoes= 0;
-    Clear();
 
-    for (int i = 0; i < num_interation; i++) {
-        //std::cout<<"------> EXECUCAO "<< i+1<< "\n"; 
+    for (int i = 0; i < quantidade_execucoes; i++) {
+        BESTSIZEFINAL = 9999;
+        tInicio = clock();
+        tDecorrido= 0;
+        iteracoes= 0;
+        ClearMatriz();
 
         while(!Time(tInicio)){
             iteracoes++;
-            quantidade_bin.clear();       
+            quantidade_bin.clear();                  
             VARIACAO_FEROMONIO= 0;
             BESTSIZEPARCIAL = 9999; 
-            bin.clear();
-            for(int NUMBER_ANTS=0; NUMBER_ANTS < 5; NUMBER_ANTS++){
-                trajetoParcial.clear(); 
-                vertice = rand() %  getSize();
 
-                if ( getWeights(vertice) <=  getBin()) {
-                    bin.push_back({});
-                    trajetoParcial.push_back(vertice);
+            for(int NUMBER_ANTS=0; NUMBER_ANTS < MaxAnts; NUMBER_ANTS++){
+                ClearBin();
+                if(!Time(tInicio)){                    
+                    trajetoParcial.clear(); 
+                    vertice = rand() %  getNumElementos();
 
-                    next = new Bin({vertice,  getWeights(vertice)});
-                    bin.at(NUMBER_ANTS).setNext(next);
-                    posicaoLista = bin.at(NUMBER_ANTS).getNext();
-                    inicio = bin.at(NUMBER_ANTS).getNext();
+                    if ( getWeights(vertice) <=  getMaxBin()) {
 
-                    quantidade_bin.push_back(1);
-                    setForFalseUsed();
-                    setUsed(vertice, true);
-
-                    while(!trueUsed()){
-                        cima.clear();
-                        vertice_probab.clear();
-                        baixo= 0;                
-                        for (int b = 0; b <  getSize(); b++) {
-                            if (getUsed(b)==false) { 
-
-                                cima.push_back(getEdge(b, next->getItenNum(0)));
-                                for(int k=1; k< next->getSize(); k++){
-                                    cima.at(b)+= (getEdge(b, next->getItenNum(k)));
-                                }
-                                cima.at(b)/= (double) next->getSize();
-                                cima.at(b) = pow(cima.at(b),1.2);
-                                cima.at(b)*= (double) pow(getWeights(b),2);
-
-                                if(getWeights(b)+ next->getWeights() <= getBin()){                                
-                                    for(int c=0; c< next->getSize(); c++){
-                                        feromonioBaixo= getEdge(b, next->getItenNum(c));
-                                        feromonioBaixo=  (feromonioBaixo/(double)next->getSize());
-                                        feromonioBaixo= pow(feromonioBaixo,1.2);
-
-                                        weight_item= (pow(getWeights(next->getItenNum(c)),2));             
-                                        baixo+= feromonioBaixo * pow(weight_item,2);
-
-                                    }
-                                }
-                            }  
-                            else{
-                                cima.push_back(-100);
-                            }              
-                        } 
-
-                        for(int b=0; b< cima.size(); b++){
-                            vertice_probab.push_back(cima.at(b)/baixo);
-                        }
-
-                        max = 0;
-                        for(int rotaK=0; rotaK< vertice_probab.size(); rotaK++){
-                            if(max < vertice_probab.at(rotaK)){
-                                max = vertice_probab.at(rotaK);
-                                vertice = rotaK;
-                            }
-                        }
-
-
-                        if (next -> getWeights() +  getWeights(vertice) <=  getBin()) {
-                            next -> addItem(vertice,  getWeights(vertice));
-                        } 
-                        else {
-                            next = new Bin({vertice,  getWeights(vertice)});
-                            posicaoLista -> setNext(next);
-                            posicaoLista = posicaoLista -> getNext();
-                            quantidade_bin.at(NUMBER_ANTS)++; 
-                        }
-
-                        setUsed(vertice,true);
                         trajetoParcial.push_back(vertice);
+
+                        next = new Bin({vertice,  getWeights(vertice)});
+                        bin[NUMBER_ANTS].setNext(next);
+                        posicaoLista = bin[NUMBER_ANTS].getNext();
+                        inicio = bin[NUMBER_ANTS].getNext();
+
+                        quantidade_bin.push_back(1);
+                        setForFalseUsed();
+                        setUsed(vertice, true);
+
+                        while(!trueUsed() && !Time(tInicio)) { 
+
+                            cima.clear();
+                            vertice_probab.clear();
+                            baixo= 0;                
+                            for (int b = 0; b <  getNumElementos(); b++) {
+                                if (getUsed(b)==false) { 
+
+                                    cima.push_back(getEdge(b, next->getItenNum(0)));
+                                    for(int k=1; k< next->getSize(); k++){
+                                        cima.at(b)+= (getEdge(b, next->getItenNum(k)));
+                                    }
+                                    cima.at(b)/= (double) next->getSize();
+                                    cima.at(b) = pow(cima.at(b),1.2);
+                                    cima.at(b)*= (double) pow(getWeights(b),2);
+
+                                    if(getWeights(b)+ next->getWeights() <= getMaxBin()){                                
+                                        for(int c=0; c< next->getSize(); c++){
+                                            feromonioBaixo= getEdge(b, next->getItenNum(c));
+                                            feromonioBaixo=  (feromonioBaixo/(double)next->getSize());
+                                            feromonioBaixo= pow(feromonioBaixo,1.2);
+
+                                            weight_item= (pow(getWeights(next->getItenNum(c)),2));             
+                                            baixo+= feromonioBaixo * pow(weight_item,2);
+
+                                        }
+                                    }
+                                }  
+                                else{
+                                    cima.push_back(-100);
+                                }              
+                            } 
+
+                            for(int b=0; b< cima.size(); b++){
+                                vertice_probab.push_back(cima.at(b)/baixo);
+                            }
+
+                            max = 0;
+                            for(int rotaK=0; rotaK< vertice_probab.size(); rotaK++){
+                                if(max < vertice_probab.at(rotaK)){
+                                    max = vertice_probab.at(rotaK);
+                                    vertice = rotaK;
+                                }
+                            }
+
+
+                            if (next -> getWeights() +  getWeights(vertice) <=  getMaxBin()) {
+                                next -> addItem(vertice,  getWeights(vertice));
+                            } 
+                            else {
+                                next = new Bin({vertice,  getWeights(vertice)});
+                                posicaoLista -> setNext(next);
+                                posicaoLista = posicaoLista -> getNext();
+                                quantidade_bin.at(NUMBER_ANTS)++; 
+                            }
+
+                            setUsed(vertice,true);
+                            trajetoParcial.push_back(vertice);
+                        }
+                    }
+
+                    if(BESTSIZEPARCIAL > quantidade_bin.at(NUMBER_ANTS) && trueUsed()){
+                        BESTSIZEPARCIAL= quantidade_bin.at(NUMBER_ANTS);  
+                        trajetoFinal.clear();
+
+                        VARIACAO_FEROMONIO= pow((double)inicio->getWeights()/(double)getMaxBin(),2);
+                        while(inicio->getNext() != NULL){
+                            inicio= inicio->getNext();
+                            VARIACAO_FEROMONIO+= pow(inicio->getWeights()/getMaxBin(),2);                    
+                        }
+                        VARIACAO_FEROMONIO/= BESTSIZEPARCIAL;
+
+                        for(int k=0; k< trajetoParcial.size(); k++){
+                            trajetoFinal.push_back(trajetoParcial.at(k));
+                        }
                     }
                 }
-
-                if(BESTSIZEPARCIAL > quantidade_bin.at(NUMBER_ANTS)){
-                    BESTSIZEPARCIAL= quantidade_bin.at(NUMBER_ANTS);                
-                    solucaoBinParcial = inicio;
-                    trajetoFinal.clear();
-
-                    VARIACAO_FEROMONIO= pow((double)inicio->getWeights()/(double)getBin(),2);
-                    while(inicio->getNext() != NULL){
-                        inicio= inicio->getNext();
-                        VARIACAO_FEROMONIO+= pow(inicio->getWeights()/getBin(),2);                    
-                    }
-                    VARIACAO_FEROMONIO/= BESTSIZEPARCIAL;
-
-                    for(int k=0; k< trajetoParcial.size(); k++){
-                        trajetoFinal.push_back(trajetoParcial.at(k));
-                    }
-
-                    quantidade_binInt.push_back(BESTSIZEPARCIAL);
-
-                }
-
             }
 
-                /*for(int k=0; k< trajetoFinal.size(); k++){
-                    std::cout<< " "<< trajetoFinal.at(k);
-                }*/
+            for(int x=0 ; x < trajetoFinal.size()-1; x++){
+                setEdge(trajetoFinal.at(x),trajetoFinal.at(x+1), VARIACAO_FEROMONIO); 
+            }
 
-                    for(int i=0 ; i < trajetoFinal.size()-1; i++){
-                        setEdge(trajetoFinal.at(i),trajetoFinal.at(i+1), VARIACAO_FEROMONIO); 
-                    }
-
-                    for (int j = 0; j <  getSize(); j++) {
-                        for (int k = 0; k <  getSize(); k++) {
-                            if(j==k)
-                                setEdge(j,k, 0);
-                            else
-                                setEdge(j,k, getEdge(j,k)*(-0.1));
-                        }
-                    }
-
-                //std::cout<< " MIN BIN -> "<< BESTSIZEPARCIAL<<"\n";
-                    if(BESTSIZEFINAL > BESTSIZEPARCIAL){
-                        BESTSIZEFINAL= BESTSIZEPARCIAL;                
-                        solucaoBinFinal = solucaoBinParcial;
-                        solucaoInt= BESTSIZEFINAL;
-                    }
+            for (int j = 0; j <  getNumElementos(); j++) {
+                for (int k = 0; k <  getNumElementos(); k++) {
+                    if(j==k)
+                        setEdge(j,k, 0);
+                    else
+                        setEdge(j,k, getEdge(j,k)*(-0.1));
                 }
-                
-                makeSaida(requisicoes.at(a), i,iteracoes, solucaoInt);
-                std::cout<< "...\n";
-                //std::cout<<"TIME: "<< tDecorrido << "\nQANT ITERACOES: "<< iteracoes<< "\nNUMBER_BIN: "<< solucaoInt<< "\n";
+            }
+
+            if(BESTSIZEFINAL > BESTSIZEPARCIAL){
+                BESTSIZEFINAL= BESTSIZEPARCIAL;         
             }
         }
-        std::cout<<"FIM!";
-/*std::cout<< "\n\nRESPOSTA";
-for(int i=0; i<trajetoFinal.size();i++){
-    std::cout<< " "<< trajetoFinal.at(i);
-}*/
-
-    
-/*for(int sol=0; sol < solucaoBinFinal->getSize(); sol++){   
-    std::cout<< solucaoBinFinal->getItenNum(sol)<< "\t"<< solucaoBinFinal->getItenPeso(sol)<<"\n";
-}
-while (solucaoBinFinal -> getNext() != NULL) { 
-    solucaoBinFinal = solucaoBinFinal->getNext();  
-    for(int sol=0; sol < solucaoBinFinal->getSize(); sol++){   
-        std::cout<< solucaoBinFinal->getItenNum(sol)<< "\t"<< solucaoBinFinal->getItenPeso(sol)<<"\n";
+        makeSaida(requisicoes.at(a), i,iteracoes, BESTSIZEFINAL);
+        std::cout<< "...\n";
     }
-
 }
-
-
-std::cout<<"\n";
-for(int i=0; i< quantidade_binInt.size(); i++){
-    std::cout<< quantidade_binInt.at(i)<<" ";
-}
-*/
-
+std::cout<<"FIM!";
 
 std::cout<<"\n";
 
-return solucaoInt;
+return BESTSIZEFINAL;
 }

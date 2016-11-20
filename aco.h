@@ -20,12 +20,14 @@ private:
 	std::vector<std::string> requisicoes;
 	std::vector<int> weights;
 	std::vector<bool> used;
-	std::vector<std::vector<double>> no;
-    int size;
-    int bin;
+	std::vector<std::vector<double>> TabelaTrilhas;
+    Bin *bin;
+    int NumElementos;
+    int MaxInBin;
     clock_t tInicio, tFim, tDecorrido;
+    int MaxAnts;
 public:
-    ACO();
+    ACO(int MaxAnts);
     int Run(int num_interation);
     bool trueUsed();
     bool Time(clock_t inicio);
@@ -35,12 +37,12 @@ public:
     void setEdge(int i, int j, double value);
     void setUsed(int position,bool new_value);
     void setForFalseUsed();
-    void Init();
-    void Clear();       
+    void ClearMatriz();   
+    void ClearBin();
     double getEdge(int i, int j);
     int getWeights(int i);
-    int getSize();
-    int getBin();
+    int getNumElementos();
+    int getMaxBin();
     bool getUsed(int position);
 };
 
