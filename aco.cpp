@@ -139,57 +139,53 @@ bool ACO::Time(clock_t inicio){
     tFim = clock();
     tDecorrido = ((tFim - tInicio) / (CLOCKS_PER_SEC / 1000));
 
-    //std::cout<< tDecorrido<<"\n";
-    if(tDecorrido > 5000)
+    std::cout<< tDecorrido<<"\n";
+    if(tDecorrido > 60000)
         return true;
     else
         return false;
 }
 
 void ACO::makeSaida(std::string name, int execucao, int iteracoes, int solucao){
-    /*int tam= requisicaoV->size();
-    std::string saidaF= "./saida/"+saida;
-    std::ofstream output(saidaF, std::ofstream::out);
-    for(int i=0; i< tam; i++){
-        output<< requisicaoV->at(i) << " "<< time_totalV->at(i)<<"\n";
-    }
-    output<< "TUDO: "<< time_total;
-    output.close();
-    std::cout<<time_total;
-    */
+    std::ofstream output("./Saidas/"+name, std::ofstream::out | std::ofstream::app);
+    //std::cout<< "./Saidas/"+name;
+    output<< "------> EXECUCAO "<< execucao+1<< "\n"
+    <<"QANT ITERACOES: "<< iteracoes<< "\nNUMBER_BIN: "<< solucao<< "\n";
+    
+    output.close();    
 }
 
 
 
 int ACO::Run(int num_interation){
-   std::vector<Bin> bin;
-   Bin *next, *posicaoLista, *inicio, *solucaoBinParcial, *solucaoBinFinal;
-   std::vector<int> quantidade_bin, quantidade_binInt, trajetoFinal, trajetoParcial;
-   std::vector<double> cima, vertice_probab;
-   double feromonioBaixo=0;
-   double weight_item=0;
-   double  baixo=0;
-   int vertice, first=0;
-   int solucaoInt=0;
-   int trajetoFinalCont=0;
-   int iteracoes=0;
-   double max=0;
-   int BESTSIZEPARCIAL = 9999;
-   int BESTSIZEFINAL = 9999;
-   double VARIACAO_FEROMONIO = 0;
+ std::vector<Bin> bin;
+ Bin *next, *posicaoLista, *inicio, *solucaoBinParcial, *solucaoBinFinal;
+ std::vector<int> quantidade_bin, quantidade_binInt, trajetoFinal, trajetoParcial;
+ std::vector<double> cima, vertice_probab;
+ double feromonioBaixo=0;
+ double weight_item=0;
+ double  baixo=0;
+ int vertice, first=0;
+ int solucaoInt=0;
+ int trajetoFinalCont=0;
+ int iteracoes=0;
+ double max=0;
+ int BESTSIZEPARCIAL = 9999;
+ int BESTSIZEFINAL = 9999;
+ double VARIACAO_FEROMONIO = 0;
 
 
-   for(int i=0; i< requisicoes.size(); i++){
-    std::cout<<"---------> "<<requisicoes.at(i)<< "\n";
-    getRequisicao(requisicoes.at(i));
+ for(int a=0; a< requisicoes.size(); a++){
+    //std::cout<<"---------> "<<requisicoes.at(a)<< "\n";
+    getRequisicao(requisicoes.at(a));
+    BESTSIZEFINAL = 9999;
+    tInicio = clock();
+    tDecorrido= 0;
+    iteracoes= 0;
+    Clear();
 
     for (int i = 0; i < num_interation; i++) {
-        std::cout<<"------> EXECUCAO "<< i+1<< "\n"; 
-        tInicio = clock();
-        tDecorrido= 0;
-        iteracoes= 0;
-        BESTSIZEFINAL = 9999;
-        Clear();
+        //std::cout<<"------> EXECUCAO "<< i+1<< "\n"; 
 
         while(!Time(tInicio)){
             iteracoes++;
@@ -321,10 +317,12 @@ int ACO::Run(int num_interation){
                     }
                 }
                 
-                makeSaida(requisicoes.at(i), i,iteracoes, solucaoInt);
-                std::cout<<"TIME: "<< tDecorrido << "\nQANT ITERACOES: "<< iteracoes<< "\nNUMBER_BIN: "<< solucaoInt<< "\n";
+                makeSaida(requisicoes.at(a), i,iteracoes, solucaoInt);
+                std::cout<< "...\n";
+                //std::cout<<"TIME: "<< tDecorrido << "\nQANT ITERACOES: "<< iteracoes<< "\nNUMBER_BIN: "<< solucaoInt<< "\n";
             }
         }
+        std::cout<<"FIM!";
 /*std::cout<< "\n\nRESPOSTA";
 for(int i=0; i<trajetoFinal.size();i++){
     std::cout<< " "<< trajetoFinal.at(i);
