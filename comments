@@ -1,9 +1,0 @@
-comments
-
-//std::cout<< "vertice: "<< bin.at(i).getNext()->getItenNum(b)<< " P: "
-//		<< graph->getWeights(bin.at(i).getNext()->getItenNum(b))
-//		<< " E: "<< graph->getEdge(vertice, bin.at(i).getNext()->getItenNum(b));
-
-//std::cout<< "vertice: "<< bin.at(i).getNext()->getItenNum(b)<< " P: "
-    								//		<< graph->getWeights(bin.at(i).getNext()->getItenNum(b)) 
-    								//		<< " E: "<< graph->getEdge(vertice, bin.at(i).getNext()->getItenNum(b));
