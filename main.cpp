@@ -3,7 +3,6 @@
 #include <math.h>
 #include <algorithm>
 #include <stdlib.h>
-#include "graph.h"
 #include "bin.h"
 
 #include <fstream>

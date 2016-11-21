@@ -6,12 +6,11 @@
 #include <math.h>
 #include <algorithm>
 #include <stdlib.h>
-#include "graph.h"
 #include "bin.h"
 
 #include <fstream>
 #include <string>
-#include <time.h>
+#include "tempo.h"
 
 
 class ACO
@@ -24,13 +23,12 @@ private:
     Bin *bin;
     int NumElementos;
     int MaxInBin;
-    clock_t tInicio, tFim, tDecorrido;
+    Tempo tempo;
     int MaxAnts;
 public:
     ACO(int MaxAnts);
     int Run(int num_interation);
     bool trueUsed();
-    bool Time(clock_t inicio);
     void getRequisicao(std::string reqNome);
     void makeSaida(std::string name, int execucao, int iteracoes, int solucao);
     void Print();
